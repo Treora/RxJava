@@ -20,6 +20,8 @@ import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -94,23 +96,47 @@ public class PublishSubject<T> extends Subject<T, T> {
 
     @Override
     public void onCompleted() {
-        for (Observer<T> observer : observers.values()) {
-            observer.onCompleted();
-        }
+        int observersSize;
+        Set<Observer<T>> notifiedObservers = new HashSet<Observer<T>>();
+        do {
+            observersSize = observers.size();
+            for (Observer<T> observer : observers.values()) {
+                if (!notifiedObservers.contains(observer)) {
+                    observer.onCompleted();
+                    notifiedObservers.add(observer);
+                }
+            }
+        } while (observers.size() > observersSize);
     }
 
     @Override
     public void onError(Exception e) {
-        for (Observer<T> observer : observers.values()) {
-            observer.onError(e);
-        }
+        int observersSize;
+        Set<Observer<T>> notifiedObservers = new HashSet<Observer<T>>();
+        do {
+            observersSize = observers.size();
+            for (Observer<T> observer : observers.values()) {
+                if (!notifiedObservers.contains(observer)) {
+                    observer.onError(e);
+                    notifiedObservers.add(observer);
+                }
+            }
+        } while (observers.size() > observersSize);
     }
 
     @Override
     public void onNext(T args) {
-        for (Observer<T> observer : observers.values()) {
-            observer.onNext(args);
-        }
+        int observersSize;
+        Set<Observer<T>> notifiedObservers = new HashSet<Observer<T>>();
+        do {
+            observersSize = observers.size();
+            for (Observer<T> observer : observers.values()) {
+                if (!notifiedObservers.contains(observer)) {
+                    observer.onNext(args);
+                    notifiedObservers.add(observer);
+                }
+            }
+        } while (observers.size() > observersSize);
     }
 
     public static class UnitTest {
